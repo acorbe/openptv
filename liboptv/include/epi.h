@@ -3,8 +3,9 @@
 
 #include "calibration.h"
 #include "typedefs.h"
-#include <optv/tracking_frame_buf.h>
+#include "tracking_frame_buf.h"
 #include "parameters.h"
+#include "ray_tracing.h"
 
 typedef struct {
   int  	pnr;
@@ -26,5 +27,7 @@ void find_candidate_plus(coord_2d crd[], target pix[], int num,
     double xa, double ya, double xb, double yb,
     int n, int nx, int ny, int sumg, candidate cand[], int *count, int nr,
     volume_par *vpar);
+void img_xy_mm_geo (double X,double Y,double Z, Exterior Ex, Interior I, 
+Glass G, mm_np mm, double *x, double *y);
 
 #endif

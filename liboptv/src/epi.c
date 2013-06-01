@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "epi.h"
-#include "globals.h"
 #include "lsqadj.h"
 
 int dumbbell_pyptv;

@@ -7,7 +7,6 @@
 #include "../src_c/parameters.h"
 #include "../src_c/typedefs.h"
 #include "../src_c/epi.h"
-#include "../src_c/globals.h"
 
 START_TEST(test_epi_mm)
 {

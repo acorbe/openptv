@@ -9,6 +9,11 @@ add_dependencies(check_fb optv)
 add_executable(check_calibration check_calibration.c)
 add_dependencies(check_calibration optv)
 
+
+add_executable(check_epi check_epi.c)
+add_dependencies(check_epi optv)
+
+
 get_property(OPTV_LIBRARY TARGET optv PROPERTY LOCATION)
 set(LIBS ${LIBS} ${CHECK_LIBRARIES} ${OPTV_LIBRARY})
 target_link_libraries(check_fb ${LIBS})
@@ -24,3 +29,11 @@ add_test(check_calibration ${CMAKE_CURRENT_BINARY_DIR}/check_calibration)
 add_custom_command(TARGET check_calibration PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_CURRENT_SOURCE_DIR}/testing_fodder $<TARGET_FILE_DIR:check_calibration>/testing_fodder)
+    
+    
+target_link_libraries(check_epi ${LIBS})
+add_test(check_epi ${CMAKE_CURRENT_BINARY_DIR}/check_epi)
+
+add_custom_command(TARGET check_epi PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_CURRENT_SOURCE_DIR}/testing_fodder $<TARGET_FILE_DIR:check_epi>/testing_fodder)

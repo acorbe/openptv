@@ -49,7 +49,8 @@ Exterior Ex2, Interior I2, Glass G2){
 
 
 int epi_mm (double x1, double y1, Exterior Ex1, Interior I1, Glass G1, \
-Exterior Ex2, Interior I2, Glass G2, mm_np mmp, volume_par *vpar, double *xmin,\
+Exterior Ex2, Interior I2, Glass G2, mm_np mmp, volume_par *vpar, \
+control_par *cp, double *xmin,\
 double *ymin, double *xmax, double *ymax){
   /*  ray tracing gives the point of exit and the direction
       cosines at the waterside of the glass;
@@ -74,11 +75,11 @@ double *ymin, double *xmax, double *ymax){
 
   Z = Zmin;   X = X1 + (Z-Z1) * a/c;   Y = Y1 + (Z-Z1) * b/c;
   //img_xy_mm_geo_old (X,Y,Z, Ex2, I2,     mmp, &xa, &ya);
-  img_xy_mm_geo     (X,Y,Z, Ex2, I2, G2, mmp, &xa, &ya);
+  img_xy_mm_geo     (X,Y,Z, Ex2, I2, G2, mmp, &xa, &ya, cp->num_cams);
 
   Z = Zmax;   X = X1 + (Z-Z1) * a/c;   Y = Y1 + (Z-Z1) * b/c;
   //img_xy_mm_geo_old (X,Y,Z, Ex2, I2,     mmp, &xb, &yb);
-  img_xy_mm_geo     (X,Y,Z, Ex2, I2, G2, mmp, &xb, &yb);
+  img_xy_mm_geo     (X,Y,Z, Ex2, I2, G2, mmp, &xb, &yb, cp->num_cams);
 
   /*  ==> window given by xa,ya,xb,yb  */
 
@@ -368,3 +369,244 @@ void crossprod (double a[3], double b[3], double c[3]) {
 	c[1] = a[2] * b[0]  -  a[0] * b[2];
 	c[2] = a[0] * b[1]  -  a[1] * b[0];
 }
+
+
+
+
+
+/* copied from imgcoord.c */
+void img_xy_mm_geo (double X,double Y,double Z, Exterior Ex, Interior I, 
+Glass G, mm_np mm, double *x, double *y, int n_img){
+  double deno;
+  Exterior Ex_t;
+  double X_t,Y_t,Z_t;
+  double *cross_p, *cross_c;
+  double Xh,Yh,Zh;
+
+  trans_Cam_Point(Ex,mm,G,X,Y,Z,&Ex_t,&X_t,&Y_t,&Z_t,&cross_p,&cross_c);
+  multimed_nlay_v2 (Ex_t,Ex,mm,X_t,Y_t,Z_t,&X_t,&Y_t, n_img);
+  back_trans_Point(X_t,Y_t,Z_t,mm, G,cross_p,cross_c,&X,&Y,&Z);
+
+  deno = Ex.dm[0][2] * (X-Ex.x0)
+    + Ex.dm[1][2] * (Y-Ex.y0)
+    + Ex.dm[2][2] * (Z-Ex.z0);
+
+  *x = - I.cc *  (Ex.dm[0][0] * (X-Ex.x0)
+		  + Ex.dm[1][0] * (Y-Ex.y0)
+		  + Ex.dm[2][0] * (Z-Ex.z0)) / deno;
+
+  *y = - I.cc *  (Ex.dm[0][1] * (X-Ex.x0)
+		  + Ex.dm[1][1] * (Y-Ex.y0)
+		  + Ex.dm[2][1] * (Z-Ex.z0)) / deno;
+}
+
+/* copied from multimed.c */
+void  multimed_nlay_v2 (Exterior ex,Exterior ex_o, mm_np mm, double X,\
+double Y, double Z,double *Xq, double *Yq, int n_img){
+  
+  //Beat Lüthi, Nov 2007 comment actually only Xq is affected since all Y and Yq are always zero
+  int		i, it=0;
+  double	 beta1, beta2[32], beta3, r, rbeta, rdiff, rq, mmf;
+  
+  // interpolation in mmLUT, if selected (requires some global variables) 
+  if (mm.lut)
+    {    
+      // check, which is the correct image 
+      for (i=0; i<n_img; i++)
+	if (Ex[i].x0 == ex_o.x0  &&  Ex[i].y0 == ex_o.y0  &&  Ex[i].z0 == ex_o.z0)
+	  break;
+      
+      mmf = get_mmf_from_mmLUT (i, X,Y,Z);
+      
+      if (mmf > 0)
+	{
+	  *Xq = ex.x0 + (X-ex.x0) * mmf;
+	  *Yq = ex.y0 + (Y-ex.y0) * mmf;
+	  return;
+	}
+    }
+  
+  // iterative procedure (if mmLUT does not exist or has no entry) 
+  r = sqrt ((X-ex.x0)*(X-ex.x0)+(Y-ex.y0)*(Y-ex.y0));
+  rq = r;
+  
+  do
+    {
+      beta1 = atan (rq/(ex.z0-Z));
+      for (i=0; i<mm.nlay; i++)	beta2[i] = asin (sin(beta1) * mm.n1/mm.n2[i]);
+      beta3 = asin (sin(beta1) * mm.n1/mm.n3);
+      
+      rbeta = (ex.z0-mm.d[0]) * tan(beta1) - Z * tan(beta3);
+      for (i=0; i<mm.nlay; i++)	rbeta += (mm.d[i] * tan(beta2[i]));
+      rdiff = r - rbeta;
+      rq += rdiff;
+      it++;
+    }
+  while (((rdiff > 0.001) || (rdiff < -0.001))  &&  it < 40);
+  
+  if (it >= 40)
+    {
+      *Xq = X; *Yq = Y;
+      puts ("Multimed_nlay stopped after 40. Iteration");	return;
+    }
+    
+  if (r != 0)
+    {
+      *Xq = ex.x0 + (X-ex.x0) * rq/r;
+      *Yq = ex.y0 + (Y-ex.y0) * rq/r;
+    }
+  else
+    {
+      *Xq = X;
+      *Yq = Y;
+    }
+	
+}
+
+
+void  multimed_nlay_v2 (Exterior ex,Exterior ex_o, mm_np mm,double X, double Y,\
+double Z,double *Xq, double *Yq){
+  
+  //Beat Lüthi, Nov 2007 comment actually only Xq is affected since all Y and Yq are always zero
+  int		i, it=0;
+  double	 beta1, beta2[32], beta3, r, rbeta, rdiff, rq, mmf;
+  
+  // interpolation in mmLUT, if selected (requires some global variables) 
+  if (mm.lut)
+    {    
+      // check, which is the correct image 
+      for (i=0; i<n_img; i++)
+	if (Ex[i].x0 == ex_o.x0  &&  Ex[i].y0 == ex_o.y0  &&  Ex[i].z0 == ex_o.z0)
+	  break;
+      
+      mmf = get_mmf_from_mmLUT (i, X,Y,Z);
+      
+      if (mmf > 0)
+	{
+	  *Xq = ex.x0 + (X-ex.x0) * mmf;
+	  *Yq = ex.y0 + (Y-ex.y0) * mmf;
+	  return;
+	}
+    }
+  
+  // iterative procedure (if mmLUT does not exist or has no entry) 
+  r = sqrt ((X-ex.x0)*(X-ex.x0)+(Y-ex.y0)*(Y-ex.y0));
+  rq = r;
+  
+  do
+    {
+      beta1 = atan (rq/(ex.z0-Z));
+      for (i=0; i<mm.nlay; i++)	beta2[i] = asin (sin(beta1) * mm.n1/mm.n2[i]);
+      beta3 = asin (sin(beta1) * mm.n1/mm.n3);
+      
+      rbeta = (ex.z0-mm.d[0]) * tan(beta1) - Z * tan(beta3);
+      for (i=0; i<mm.nlay; i++)	rbeta += (mm.d[i] * tan(beta2[i]));
+      rdiff = r - rbeta;
+      rq += rdiff;
+      it++;
+    }
+  while (((rdiff > 0.001) || (rdiff < -0.001))  &&  it < 40);
+  
+  if (it >= 40)
+    {
+      *Xq = X; *Yq = Y;
+      puts ("Multimed_nlay stopped after 40. Iteration");	return;
+    }
+    
+  if (r != 0)
+    {
+      *Xq = ex.x0 + (X-ex.x0) * rq/r;
+      *Yq = ex.y0 + (Y-ex.y0) * rq/r;
+    }
+  else
+    {
+      *Xq = X;
+      *Yq = Y;
+    }
+	
+}
+
+/* from multimed.c */
+
+void back_trans_Point(double X_t,double Y_t,double Z_t,mm_np mm,Glass G,\
+double cross_p[], double cross_c[], double *X, double *Y, double *Z){
+    
+    double nVe,nGl;
+	nGl=sqrt(pow(G.vec_x,2.)+pow(G.vec_y,2.)+pow(G.vec_z,2.));
+	nVe=sqrt( pow(cross_p[0]-(cross_c[0]-mm.d[0]*G.vec_x/nGl),2.)
+		     +pow(cross_p[1]-(cross_c[1]-mm.d[0]*G.vec_y/nGl),2.)
+			 +pow(cross_p[2]-(cross_c[2]-mm.d[0]*G.vec_z/nGl),2.));
+	
+
+	*X=cross_c[0]-mm.d[0]*G.vec_x/nGl+X_t*(cross_p[0]-(cross_c[0]-mm.d[0]*G.vec_x/nGl))/nVe+Z_t*G.vec_x/nGl;
+	*Y=cross_c[1]-mm.d[0]*G.vec_y/nGl+X_t*(cross_p[1]-(cross_c[1]-mm.d[0]*G.vec_y/nGl))/nVe+Z_t*G.vec_y/nGl;
+	*Z=cross_c[2]-mm.d[0]*G.vec_z/nGl+X_t*(cross_p[2]-(cross_c[2]-mm.d[0]*G.vec_z/nGl))/nVe+Z_t*G.vec_z/nGl;
+
+}
+
+
+
+void trans_Cam_Point(Exterior ex, mm_np mm,Glass gl,\
+double X,double Y, double Z,Exterior *ex_t,double *X_t,\
+double *Y_t, double *Z_t,double *cross_p, double *cross_c){
+  //--Beat Lüthi June 07: I change the stuff to a system perpendicular to the interface
+  double dist_cam_glas,dist_point_glas,dist_o_glas; //glas inside at water 
+  
+  dist_o_glas=sqrt(gl.vec_x*gl.vec_x+gl.vec_y*gl.vec_y+gl.vec_z*gl.vec_z);
+  dist_cam_glas   = ex.x0*gl.vec_x/dist_o_glas+ex.y0*gl.vec_y/dist_o_glas+ex.z0*gl.vec_z/dist_o_glas-dist_o_glas-mm.d[0];
+  dist_point_glas = X    *gl.vec_x/dist_o_glas+Y    *gl.vec_y/dist_o_glas+Z    *gl.vec_z/dist_o_glas-dist_o_glas; 
+
+  cross_c[0]=ex.x0-dist_cam_glas*gl.vec_x/dist_o_glas;
+  cross_c[1]=ex.y0-dist_cam_glas*gl.vec_y/dist_o_glas;
+  cross_c[2]=ex.z0-dist_cam_glas*gl.vec_z/dist_o_glas;
+  cross_p[0]=X    -dist_point_glas*gl.vec_x/dist_o_glas;
+  cross_p[1]=Y    -dist_point_glas*gl.vec_y/dist_o_glas;
+  cross_p[2]=Z    -dist_point_glas*gl.vec_z/dist_o_glas;
+
+  ex_t->x0=0.;
+  ex_t->y0=0.;
+  ex_t->z0=dist_cam_glas+mm.d[0];
+
+  *X_t=sqrt( pow(cross_p[0]-(cross_c[0]-mm.d[0]*gl.vec_x/dist_o_glas),2.)
+		    +pow(cross_p[1]-(cross_c[1]-mm.d[0]*gl.vec_y/dist_o_glas),2.)
+			+pow(cross_p[2]-(cross_c[2]-mm.d[0]*gl.vec_z/dist_o_glas),2.));
+  *Y_t=0;
+  *Z_t=dist_point_glas;
+      
+}
+
+
+/* copied from trafo.c */
+
+void correct_brown_affin (x, y, ap, x1, y1)
+
+double	x, y, *x1, *y1;
+ap_52	ap;
+/*  correct crd to geo with Brown + affine  */
+   
+{
+  double  r, xq, yq;
+	
+
+  r = sqrt (x*x + y*y);
+  if (r != 0)
+    {
+      xq = (x + y*sin(ap.she))/ap.scx
+	- x * (ap.k1*r*r + ap.k2*r*r*r*r + ap.k3*r*r*r*r*r*r)
+	- ap.p1 * (r*r + 2*x*x) - 2*ap.p2*x*y;
+      yq = y/cos(ap.she)
+	- y * (ap.k1*r*r + ap.k2*r*r*r*r + ap.k3*r*r*r*r*r*r)
+	- ap.p2 * (r*r + 2*y*y) - 2*ap.p1*x*y;
+    }
+  r = sqrt (xq*xq + yq*yq);		/* one iteration */
+  if (r != 0)
+    {
+      *x1 = (x + yq*sin(ap.she))/ap.scx
+	- xq * (ap.k1*r*r + ap.k2*r*r*r*r + ap.k3*r*r*r*r*r*r)
+	- ap.p1 * (r*r + 2*xq*xq) - 2*ap.p2*xq*yq;
+      *y1 = y/cos(ap.she)
+	- yq * (ap.k1*r*r + ap.k2*r*r*r*r + ap.k3*r*r*r*r*r*r)
+	- ap.p2 * (r*r + 2*yq*yq) - 2*ap.p1*xq*yq;
+    }
+}
+

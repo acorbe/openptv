@@ -27,7 +27,7 @@ double Z,double *Xq, double *Yq){
   
   //Beat Lüthi, Nov 2007 comment actually only Xq is affected since all Y and Yq are always zero
   int		i, it=0;
-  double	beta1, beta2[32], beta3, r, rbeta, rdiff, rq, mmf;
+  double	 beta1, beta2[32], beta3, r, rbeta, rdiff, rq, mmf;
   
   // interpolation in mmLUT, if selected (requires some global variables) 
   if (mm.lut)

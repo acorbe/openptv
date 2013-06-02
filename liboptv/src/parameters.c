@@ -247,10 +247,10 @@ control_par* read_control_par(char *filename) {
     if(fscanf(par_file, "%d\n", &(ret->pix_x)) == 0) goto handle_error;
     if(fscanf(par_file, "%d\n", &(ret->pix_y)) == 0) goto handle_error;
     if(fscanf(par_file, "%d\n", &(ret->chfield)) == 0) goto handle_error;
-    if(fscanf(par_file, "%d\n", &(ret->mmp.n1)) == 0) goto handle_error;
-    if(fscanf(par_file, "%d\n", &(ret->mmp.n2)) == 0) goto handle_error;
-    if(fscanf(par_file, "%d\n", &(ret->mmp.n3)) == 0) goto handle_error;
-    if(fscanf(par_file, "%d\n", &(ret->mmp.d)) == 0) goto handle_error; 
+    if(fscanf(par_file, "%d\n", &(ret->n1)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->n2[0])) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->n3)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->d[0])) == 0) goto handle_error; 
     
     return ret;
     fclose(par_file);
@@ -311,12 +311,11 @@ int compare_control_par(control_par *c1, control_par *c2) {
     if (c1->pix_x != c2->pix_x) return 0;
     if (c1->pix_y != c2->pix_y) return 0;
     if (c1->chfield != c2->chfield) return 0;
-    if (c1->mmp.n1 != c2->mmp.n1) return 0;
-    if (c1->mmp.n2[0] != c2->mmp.n2[0]) return 0;
-    if (c1->mmp.n3 != c2->mmp.n3) return 0;
-    if (c1->mmp.d[0] != c2->mmp.d[0]) return 0;
-   
-    
+    if (c1->n1 != c2->n1) return 0;
+    if (c1->n2[0] != c2->n2[0]) return 0;
+    if (c1->n3 != c2->n3) return 0;
+    if (c1->d[0] != c2->d[0]) return 0;
+
     return 1;
 }
 
@@ -344,3 +343,40 @@ int compare_volume_par(volume_par *v1, volume_par *v2) {
         (v1->cny == v2->cny) && (v1->csumg == v2->csumg) && \
         (v1->corrmin == v2->corrmin) && (v1->eps0 == v2->eps0) );
 }
+
+
+
+/* convert part of the control parameters from ptv.par into mm_np structure 
+*  Arguments: 
+*    control_par *cp
+*  Returns:
+    mm_np *mmp
+*/
+
+mm_np* control_par_to_mm_np(control_par *cp){
+    mm_np *mmp = (mm_np *) malloc(sizeof(mm_np));
+    mmp->n1 = cp->n1;
+    mmp->n2[0] = cp->n2[0];
+    mmp->n3 = cp->n3;
+    mmp->d[0] = cp->d[0];
+    return mmp;
+}
+
+/* compare_mm_np() checks that all fields of two mm_np objects are
+   equal.
+   
+   Arguments:
+   mm_np *mm1, mm_np *mm2 - addresses of the objects for comparison.
+   
+   Returns:
+   True if equal, false otherwise.
+*/
+int compare_mm_np(mm_np *mmp){
+    return ( 
+        (mm1->n1 == mm2->n1) && \
+        (mm1->n2[0] == mm2->n2[0]) && \
+        (mm1->n3 == mm2->n3) && \
+        (mm1->d[0] == mm2->d[0]) );
+
+}
+

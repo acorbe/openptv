@@ -1,7 +1,7 @@
 #ifndef TYPEDEFS_H
 #define TYPEDEFS_H
 
-#include <optv/tracking_frame_buf.h>
+#include "tracking_frame_buf.h"
 #include "calibration.h"
 
 #define sqr(x) x*x
@@ -34,17 +34,6 @@ typedef struct
   int    lut;
 }
 mm_3p;
-
-typedef struct
-{
-  int  	  nlay;
-  double  n1;
-  double  n2[3];
-  double  d[3];
-  double  n3;
-  int     lut;
-}
-mm_np;
 
 typedef struct
 {

@@ -49,17 +49,8 @@ Exterior Ex2, Interior I2, Glass G2){
 
 
 int epi_mm (double x1, double y1, Exterior Ex1, Interior I1, Glass G1, \
-Exterior Ex2, Interior I2, Glass G2, mm_np mmp, vpar, xmin, ymin, xmax, ymax)
-
-double     x1, y1;	  	/* input coord */
-Exterior   Ex1, Ex2;           	/* orientation data */
-Interior   I1, I2;	      	/* orientation data */
-Glass      G1, G2;	      	/* glass data */
-mm_np	   mmp;		        /* multimed param. (layers) */
-volume_par *vpar;
-double	   *xmin, *ymin, *xmax, *ymax;    /* output search window */
-
-{
+Exterior Ex2, Interior I2, Glass G2, mm_np mmp, volume_par *vpar, double *xmin,\
+double *ymin, double *xmax, double *ymax){
   /*  ray tracing gives the point of exit and the direction
       cosines at the waterside of the glass;
       min. and max. depth give window in object space,
@@ -96,18 +87,8 @@ double	   *xmin, *ymin, *xmax, *ymax;    /* output search window */
   return (0);
 }
 
-int epi_mm_2D (x1, y1, Ex1, I1, G1, mmp, vpar, xp,yp,zp)
-
-double     x1, y1;	  	/* input coord */
-Exterior   Ex1;           	/* orientation data */
-Interior   I1;	      	/* orientation data */
-Glass      G1;	      	/* glass data */
-mm_np	   mmp;		        /* multimed param. (layers) */
-volume_par *vpar;
-double *xp, *yp, *zp;
-//double	   *xmin, *ymin, *xmax, *ymax;    /* output search window */
-
-{
+int epi_mm_2D (double x1, double y1, Exterior Ex1, Interior I1, Glass G1, \
+mm_np mmp, volume_par *vpar, double *xp, double *yp, double *zp){
   /*  ray tracing gives the point of exit and the direction
       cosines at the waterside of the glass;
       min. and max. depth give window in object space,

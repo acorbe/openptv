@@ -2,10 +2,10 @@
 #define EPI_H
 
 #include "calibration.h"
-#include "typedefs.h"
 #include "tracking_frame_buf.h"
 #include "parameters.h"
 #include "ray_tracing.h"
+#include "typedefs.h"
 
 typedef struct {
   int  	pnr;

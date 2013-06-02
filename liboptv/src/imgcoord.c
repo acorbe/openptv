@@ -17,7 +17,7 @@ Routines contained:
 
 ****************************************************************************/
 
-#include "ptv.h"
+#include "epi.h"
 
 void img_coord (X,Y,Z, Ex, I, G, ap, mm, x,y)
 

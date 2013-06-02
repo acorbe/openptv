@@ -247,10 +247,10 @@ control_par* read_control_par(char *filename) {
     if(fscanf(par_file, "%d\n", &(ret->pix_x)) == 0) goto handle_error;
     if(fscanf(par_file, "%d\n", &(ret->pix_y)) == 0) goto handle_error;
     if(fscanf(par_file, "%d\n", &(ret->chfield)) == 0) goto handle_error;
-    if(fscanf(par_file, "%d\n", &(ret->n1)) == 0) goto handle_error;
-    if(fscanf(par_file, "%d\n", &(ret->n2[0])) == 0) goto handle_error;
-    if(fscanf(par_file, "%d\n", &(ret->n3)) == 0) goto handle_error;
-    if(fscanf(par_file, "%d\n", &(ret->d[0])) == 0) goto handle_error; 
+    if(fscanf(par_file, "%lf\n", &(ret->n1)) == 0) goto handle_error;
+    if(fscanf(par_file, "%lf\n", &(ret->n2[0])) == 0) goto handle_error;
+    if(fscanf(par_file, "%lf\n", &(ret->n3)) == 0) goto handle_error;
+    if(fscanf(par_file, "%lf\n", &(ret->d[0])) == 0) goto handle_error; 
     
     return ret;
     fclose(par_file);
@@ -320,32 +320,6 @@ int compare_control_par(control_par *c1, control_par *c2) {
 }
 
 
-
-
-/* compare_volume_par() checks that all fields of two volume_par objects are
-   equal.
-   
-   Arguments:
-   volume_par *v1, volume_par *v2 - addresses of the objects for comparison.
-   
-   Returns:
-   True if equal, false otherwise.
-*/
-int compare_volume_par(volume_par *v1, volume_par *v2) {
-    return ( 
-        (v1->X_lay[0] == v2->X_lay[0]) && \
-        (v1->Zmin_lay[0] == v2->Zmin_lay[0]) && \
-        (v1->Zmax_lay[0] == v2->Zmax_lay[0]) && \
-        (v1->X_lay[1] == v2->X_lay[1]) && \
-        (v1->Zmin_lay[1] == v2->Zmin_lay[1]) && \
-        (v1->Zmax_lay[1] == v2->Zmax_lay[1]) &&
-        (v1->cn == v2->cn) && (v1->cnx == v2->cnx) && \
-        (v1->cny == v2->cny) && (v1->csumg == v2->csumg) && \
-        (v1->corrmin == v2->corrmin) && (v1->eps0 == v2->eps0) );
-}
-
-
-
 /* convert part of the control parameters from ptv.par into mm_np structure 
 *  Arguments: 
 *    control_par *cp
@@ -371,7 +345,7 @@ mm_np* control_par_to_mm_np(control_par *cp){
    Returns:
    True if equal, false otherwise.
 */
-int compare_mm_np(mm_np *mmp){
+int compare_mm_np(mm_np *mm1, mm_np *mm2){
     return ( 
         (mm1->n1 == mm2->n1) && \
         (mm1->n2[0] == mm2->n2[0]) && \

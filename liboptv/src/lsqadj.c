@@ -1,6 +1,13 @@
-/* parts of code of adjlib.c from Horst Beyer, Hannes Kirndorfer */
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-#include "ptv.h"
+
+#include "epi.h"
+
+
+/* parts of code of adjlib.c from Horst Beyer, Hannes Kirndorfer */
 
 void ata ( a, ata, m, n )
 int      m, n;

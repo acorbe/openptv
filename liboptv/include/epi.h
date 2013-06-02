@@ -1,11 +1,17 @@
 #ifndef EPI_H
 #define EPI_H
 
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+
+
 #include "calibration.h"
 #include "tracking_frame_buf.h"
 #include "parameters.h"
 #include "ray_tracing.h"
 #include "typedefs.h"
+#include "lsqadj.h"
 
 typedef struct {
   int  	pnr;
@@ -14,20 +20,29 @@ typedef struct {
 
 double epi_line(double xl, double yl, Exterior Ex1, Interior I1, Glass G1,
     Exterior Ex2, Interior I2, Glass G2);
+    
 int  epi_mm(double xl, double yl, Exterior Ex1, Interior I1, Glass G1,
     Exterior Ex2, Interior I2, Glass G2, mm_np mmp, volume_par *vpar,
     double *xmin, double *ymin, double *xmax, double *ymax);
+    
 int  epi_mm_2D(double xl, double yl, Exterior Ex1, Interior I1, Glass G1,
     mm_np mmp, volume_par *vpar, double *xout, double *yout, double *zout);
-void find_candidate_plus_msg(coord_2d crd[], target pix[], int num,
-    double xa, double ya, double xb, double yb,
-    int n, int nx, int ny, int sumg, candidate cand[], int *count, int i12,
-    volume_par *vpar);
-void find_candidate_plus(coord_2d crd[], target pix[], int num,
-    double xa, double ya, double xb, double yb,
-    int n, int nx, int ny, int sumg, candidate cand[], int *count, int nr,
-    volume_par *vpar);
+    
+void find_candidate_plus_msg (coord_2d crd[], target pix[], int num, double xa,\
+double ya,double xb,double yb, int n, int nx, int ny, int sumg,\
+candidate cand[], int *count, int i12, volume_par *vpar, control_par *cp, \
+Interior I[], ap_52 ap[]);
+    
+void find_candidate_plus (coord_2d crd[], target pix[], int num, double xa, \
+double ya, double xb, double yb, int n, int nx, int ny, int sumg,\
+candidate cand[], int *count, int nr, volume_par *vpar, control_par *cp, \
+Interior *I, ap_52 ap[]);
+    
 void img_xy_mm_geo (double X,double Y,double Z, Exterior Ex, Interior I, 
 Glass G, mm_np mm, double *x, double *y);
+
+void crossprod (double a[3], double b[3], double c[3]);
+
+void correct_brown_affin();
 
 #endif

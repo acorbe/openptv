@@ -76,7 +76,7 @@ typedef struct {
 } mm_np;
     
 mm_np* control_par_to_mm_np(control_par *cp);
-int compare_mm_np(mm_np *mmp);
+int compare_mm_np(mm_np *mm1, mm_np *mm2);
 
 #endif
 

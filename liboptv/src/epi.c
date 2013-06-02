@@ -100,7 +100,7 @@ mm_np mmp, volume_par *vpar, double *xp, double *yp, double *zp){
   
   double Zmin, Zmax;
 
-  ray_tracing_v2 (x1,y1, Ex1, I1, G1, mmp, &X1, &Y1, &Z1, &a, &b, &c);
+  ray_tracing_v2 ( x1,y1, Ex1, I1, G1, mmp, &X1, &Y1, &Z1, &a, &b, &c);
 
   /* calculate min and max depth for position (valid only for one setup) */
   Zmin = vpar->Zmin_lay[0]
@@ -119,22 +119,11 @@ mm_np mmp, volume_par *vpar, double *xp, double *yp, double *zp){
   return (0);
 }
 
-void find_candidate_plus (crd, pix, num, xa,ya,xb,yb, n, nx, ny, sumg,
-						  cand, count, nr, vpar)
+void find_candidate_plus (coord_2d crd[], target pix[], int num, double xa, \
+double ya, double xb, double yb, int n, int nx, int ny, int sumg,\
+candidate cand[], int *count, int nr, volume_par *vpar, control_par *cp, \
+Interior *I, ap_52 ap[]){
 /*  binarized search in a x-sorted coord-set, exploits shape information  */
-
-coord_2d	crd[];
-target		pix[];
-int    		num, *count;
-double		xa, ya, xb, yb;
-int    		n, nx, ny, sumg;
-candidate	cand[];
-int	       	nr;	       	/* image number for ap etc. */
-volume_par *vpar;
-//const char** argv;
-
-
-{
   register int	j;
   int dummy;
   int	       	j0, dj, p2;
@@ -153,7 +142,7 @@ volume_par *vpar;
 	  /////here is new Beat version of April 2010
 	  if (nx>ny) particle_size=nx;
 	  else       particle_size=ny;
-	  tol_band_width = vpar->eps0*0.5*(pix_x + pix_y)*particle_size;
+	  tol_band_width = vpar->eps0*0.5*(cp->pix_x + cp->pix_y)*particle_size;
   }
   else{
       tol_band_width = vpar->eps0;
@@ -163,10 +152,14 @@ volume_par *vpar;
   }
 
   /* define sensor format for search interrupt */
-  xmin = (-1) * pix_x * imx/2;	xmax = pix_x * imx/2;
-  ymin = (-1) * pix_y * imy/2;	ymax = pix_y * imy/2;
-  xmin -= I[nr].xh;	ymin -= I[nr].yh;
-  xmax -= I[nr].xh;	ymax -= I[nr].yh;
+  xmin = (-1) * cp->pix_x * cp->imx/2;	
+  xmax = cp->pix_x * cp->imx/2;
+  ymin = (-1) * cp->pix_y * cp->imy/2;	
+  ymax = cp->pix_y * cp->imy/2;
+  xmin -= I[nr].xh;	
+  ymin -= I[nr].yh;
+  xmax -= I[nr].xh;	
+  ymax -= I[nr].yh;
   correct_brown_affin (xmin,ymin, ap[nr], &xmin,&ymin);
   correct_brown_affin (xmax,ymax, ap[nr], &xmax,&ymax);
 
@@ -261,26 +254,15 @@ volume_par *vpar;
 }
 
 
-
-
-void find_candidate_plus_msg (crd, pix, num, xa,ya,xb,yb, n, nx, ny, sumg,
-							  cand, count, i12, vpar)
+void find_candidate_plus_msg (coord_2d crd[], target pix[], int num, double xa,\
+double ya,double xb,double yb, int n, int nx, int ny, int sumg,\
+candidate cand[], int *count, int i12, volume_par *vpar, control_par *cp, \
+Interior I[], ap_52 ap[])
+{
 
 /*  binarized search in a x-sorted coord-set, exploits shape information  */
 /*  gives messages (in examination)  */
 
-coord_2d	crd[];
-target		pix[];
-int    		num, *count, i12;
-double		xa, ya, xb, yb;
-int    		n, nx, ny, sumg;
-volume_par *vpar;
-/*
-candidate	cand[3];
-*/
-candidate	cand[];
-
-{
   register int	j;
   int	       	j0, dj, p2;
   double        m, b, d, temp, qn, qnx, qny, qsumg, corr;
@@ -288,8 +270,11 @@ candidate	cand[];
   double tol_band_width,particle_size;
 
   /* define sensor format for search interrupt */
-  xmin = (-1) * pix_x * imx/2;	xmax = pix_x * imx/2;
-  ymin = (-1) * pix_y * imy/2;	ymax = pix_y * imy/2;
+  xmin = (-1) * cp->pix_x * cp->imx/2;	
+  xmax = cp->pix_x * cp->imx/2;
+  ymin = (-1) * cp->pix_y * cp->imy/2;	
+  ymax = cp->pix_y * cp->imy/2;
+  
   xmin -= I[i12].xh;	ymin -= I[i12].yh;
   xmax -= I[i12].xh;	ymax -= I[i12].yh;
   correct_brown_affin (xmin,ymin, ap[i12], &xmin,&ymin);
@@ -297,7 +282,7 @@ candidate	cand[];
 
   if (nx>ny) particle_size=nx;
   else       particle_size=ny;
-  tol_band_width = vpar->eps0*0.5*(pix_x + pix_y)*particle_size;
+  tol_band_width = vpar->eps0*0.5*(cp->pix_x + cp->pix_y)*particle_size;
 
   for (j=0; j<4; j++)
     {
@@ -378,11 +363,7 @@ candidate	cand[];
 
 
 
-void crossprod (a,b,c)
-
-double  a[3], b[3], c[3];
-
-{
+void crossprod (double a[3], double b[3], double c[3]) {
 	c[0] = a[1] * b[2]  -  a[2] * b[1];
 	c[1] = a[2] * b[0]  -  a[0] * b[2];
 	c[2] = a[0] * b[1]  -  a[1] * b[0];

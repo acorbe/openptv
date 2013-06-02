@@ -47,8 +47,8 @@ void img_xy_mm_geo (double X,double Y,double Z, Exterior Ex, Interior I,
 Glass G, mm_np mm, double *x, double *y, int n_img);
 
 
-void  multimed_nlay_v2 (Exterior ex,Exterior ex_o, mm_np mm, double X,\
-double Y, double Z,double *Xq, double *Yq, int n_img);
+void  multimed_nlay_v2 (Exterior ex, Exterior ex_o, mm_np mm, double X,\
+double Y, double Z,double *Xq, double *Yq, int n_img, Exterior *Ex);
 
 void back_trans_Point(double X_t,double Y_t,double Z_t,mm_np mm,Glass G,\
 double cross_p[3], double cross_c[3], double *X, double *Y, double *Z);

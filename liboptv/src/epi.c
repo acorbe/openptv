@@ -384,7 +384,7 @@ Glass G, mm_np mm, double *x, double *y, int n_img){
   double Xh,Yh,Zh;
 
   trans_Cam_Point(Ex,mm,G,X,Y,Z,&Ex_t,&X_t,&Y_t,&Z_t,&cross_p,&cross_c);
-  multimed_nlay_v2 (Ex_t,Ex,mm,X_t,Y_t,Z_t,&X_t,&Y_t, n_img);
+  multimed_nlay_v2 (Ex_t,Ex,mm,X_t,Y_t,Z_t,&X_t,&Y_t, n_img, Ex);
   back_trans_Point(X_t,Y_t,Z_t,mm, G,cross_p,cross_c,&X,&Y,&Z);
 
   deno = Ex.dm[0][2] * (X-Ex.x0)
@@ -402,7 +402,8 @@ Glass G, mm_np mm, double *x, double *y, int n_img){
 
 /* copied from multimed.c */
 void  multimed_nlay_v2 (Exterior ex,Exterior ex_o, mm_np mm, double X,\
-double Y, double Z,double *Xq, double *Yq, int n_img){
+double Y, double Z,double *Xq, double *Yq, int n_img,\
+Exterior *Ex){
   
   //Beat Lüthi, Nov 2007 comment actually only Xq is affected since all Y and Yq are always zero
   int		i, it=0;
@@ -413,7 +414,7 @@ double Y, double Z,double *Xq, double *Yq, int n_img){
     {    
       // check, which is the correct image 
       for (i=0; i<n_img; i++)
-	if (Ex[i].x0 == ex_o.x0  &&  Ex[i].y0 == ex_o.y0  &&  Ex[i].z0 == ex_o.z0)
+	if (Ex[i]->x0 == ex_o->x0  &&  Ex[i]->y0 == ex_o->y0  &&  Ex[i]->z0 == ex_o->z0)
 	  break;
       
       mmf = get_mmf_from_mmLUT (i, X,Y,Z);
@@ -464,67 +465,7 @@ double Y, double Z,double *Xq, double *Yq, int n_img){
 }
 
 
-void  multimed_nlay_v2 (Exterior ex,Exterior ex_o, mm_np mm,double X, double Y,\
-double Z,double *Xq, double *Yq){
-  
-  //Beat Lüthi, Nov 2007 comment actually only Xq is affected since all Y and Yq are always zero
-  int		i, it=0;
-  double	 beta1, beta2[32], beta3, r, rbeta, rdiff, rq, mmf;
-  
-  // interpolation in mmLUT, if selected (requires some global variables) 
-  if (mm.lut)
-    {    
-      // check, which is the correct image 
-      for (i=0; i<n_img; i++)
-	if (Ex[i].x0 == ex_o.x0  &&  Ex[i].y0 == ex_o.y0  &&  Ex[i].z0 == ex_o.z0)
-	  break;
-      
-      mmf = get_mmf_from_mmLUT (i, X,Y,Z);
-      
-      if (mmf > 0)
-	{
-	  *Xq = ex.x0 + (X-ex.x0) * mmf;
-	  *Yq = ex.y0 + (Y-ex.y0) * mmf;
-	  return;
-	}
-    }
-  
-  // iterative procedure (if mmLUT does not exist or has no entry) 
-  r = sqrt ((X-ex.x0)*(X-ex.x0)+(Y-ex.y0)*(Y-ex.y0));
-  rq = r;
-  
-  do
-    {
-      beta1 = atan (rq/(ex.z0-Z));
-      for (i=0; i<mm.nlay; i++)	beta2[i] = asin (sin(beta1) * mm.n1/mm.n2[i]);
-      beta3 = asin (sin(beta1) * mm.n1/mm.n3);
-      
-      rbeta = (ex.z0-mm.d[0]) * tan(beta1) - Z * tan(beta3);
-      for (i=0; i<mm.nlay; i++)	rbeta += (mm.d[i] * tan(beta2[i]));
-      rdiff = r - rbeta;
-      rq += rdiff;
-      it++;
-    }
-  while (((rdiff > 0.001) || (rdiff < -0.001))  &&  it < 40);
-  
-  if (it >= 40)
-    {
-      *Xq = X; *Yq = Y;
-      puts ("Multimed_nlay stopped after 40. Iteration");	return;
-    }
-    
-  if (r != 0)
-    {
-      *Xq = ex.x0 + (X-ex.x0) * rq/r;
-      *Yq = ex.y0 + (Y-ex.y0) * rq/r;
-    }
-  else
-    {
-      *Xq = X;
-      *Yq = Y;
-    }
-	
-}
+
 
 /* from multimed.c */
 

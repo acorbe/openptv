@@ -11,5 +11,7 @@ void matinv(double *a, int n);
 void matmul(double *a, double *b, double *c,
     int m, int n, int k);
 void mat_transpose(double *mat1, double *mat2, int m, int n);
+void crossprod (double a[3], double b[3], double c[3]);
+
 
 #endif

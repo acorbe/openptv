@@ -162,11 +162,9 @@ int      n, n_large;         /* number of observations */
 }	/* end matinv */
 
 
-void matmul (a,b,c,m,n,k)
-int    m,n,k;
-double  *a,*b,*c;
-
-{  int    i,j,l;
+void matmul (double *a, double *b, double *c,\
+                int m, int n, int k){
+int    i,j,l;
 double  x,*pa,*pb,*pc;
 
 for (i=0; i<k; i++)
@@ -257,3 +255,10 @@ int		n, m;
    
   for (i=0; i<m; i++)	for (j=0; j<n; j++)	*(mat2+j*m+i) = *(mat1+i*n+j);
 }
+
+void crossprod (double a[3], double b[3], double c[3]) {
+	c[0] = a[1] * b[2]  -  a[2] * b[1];
+	c[1] = a[2] * b[0]  -  a[0] * b[2];
+	c[2] = a[0] * b[1]  -  a[1] * b[0];
+}
+

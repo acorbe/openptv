@@ -132,12 +132,25 @@ double c1, double * x,double * y,double * z){
 	*z=0.5*(Ap[2]+App[2]);
 }
 
-void norm_cross(double a[3],double b[3],double * n1,double * n2,double * n3){
-	double  res[3],dummy;
+/* Normalized cross product 
+*  Arguments:
+*       a,b - double vectors of length 4
+*  Returns:
+*       vector of normalized cross-production direction:
+*       n1,n2,n3
+*/
 
+void norm_cross(double a[3],double b[3], double * n1,double * n2,double * n3){
+	double res[3], dummy;
+
+/*
 	res[0]=a[1]*b[2]-a[2]*b[1];
 	res[1]=a[2]*b[0]-a[0]*b[2];
 	res[2]=a[0]*b[1]-a[1]*b[0];
+*/
+/* refactoring */	
+	crossprod (a, b, res) 
+	
 	dummy=sqrt(pow(res[0],2)+pow(res[1],2)+pow(res[2],2));
 	
 	*n1=res[0]/dummy;

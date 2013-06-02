@@ -39,9 +39,8 @@ candidate cand[], int *count, int nr, volume_par *vpar, control_par *cp, \
 Interior *I, ap_52 ap[]);
     
 
-void crossprod (double a[3], double b[3], double c[3]);
 
-void correct_brown_affin();
+void correct_brown_affin (double x, double y, ap_52 ap, double *x1, double *y1);
 
 void img_xy_mm_geo (double X,double Y,double Z, Exterior Ex, Interior I, 
 Glass G, mm_np mm, double *x, double *y, int n_img);

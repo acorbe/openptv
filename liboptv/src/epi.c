@@ -7,6 +7,8 @@
 
 int dumbbell_pyptv;
 
+
+
 double epi_line (double xl, double yl, Exterior Ex1, Interior I1, Glass G1, \
 Exterior Ex2, Interior I2, Glass G2){
 
@@ -14,7 +16,6 @@ Exterior Ex2, Interior I2, Glass G2){
   double m2;
   double vect1[3], vect2[3], vect3[3], nk[3], n2[3],
     p1l[3], K2[3], k2[3], D2t[3][3];
-  void crossprod ();
 
   /* base O1 -> O2 */
   vect1[0] = Ex2.x0 - Ex1.x0;
@@ -79,7 +80,7 @@ double *ymin, double *xmax, double *ymax){
 
   Z = Zmax;   X = X1 + (Z-Z1) * a/c;   Y = Y1 + (Z-Z1) * b/c;
   //img_xy_mm_geo_old (X,Y,Z, Ex2, I2,     mmp, &xb, &yb);
-  img_xy_mm_geo     (X,Y,Z, Ex2, I2, G2, mmp, &xb, &yb, cp->num_cams);
+  img_xy_mm_geo(X,Y,Z, Ex2, I2, G2, mmp, &xb, &yb, cp->num_cams);
 
   /*  ==> window given by xa,ya,xb,yb  */
 
@@ -361,19 +362,6 @@ Interior I[], ap_52 ap[])
 }
 
 
-
-
-
-void crossprod (double a[3], double b[3], double c[3]) {
-	c[0] = a[1] * b[2]  -  a[2] * b[1];
-	c[1] = a[2] * b[0]  -  a[0] * b[2];
-	c[2] = a[0] * b[1]  -  a[1] * b[0];
-}
-
-
-
-
-
 /* copied from imgcoord.c */
 void img_xy_mm_geo (double X,double Y,double Z, Exterior Ex, Interior I, 
 Glass G, mm_np mm, double *x, double *y, int n_img){
@@ -469,8 +457,8 @@ Exterior *Ex){
 
 /* from multimed.c */
 
-void back_trans_Point(double X_t,double Y_t,double Z_t,mm_np mm,Glass G,\
-double cross_p[], double cross_c[], double *X, double *Y, double *Z){
+void back_trans_Point(double X_t,double Y_t,double Z_t,mm_np mm, Glass G,\
+double cross_p[3], double cross_c[3], double *X, double *Y, double *Z){
     
     double nVe,nGl;
 	nGl=sqrt(pow(G.vec_x,2.)+pow(G.vec_y,2.)+pow(G.vec_z,2.));
@@ -487,15 +475,23 @@ double cross_p[], double cross_c[], double *X, double *Y, double *Z){
 
 
 
-void trans_Cam_Point(Exterior ex, mm_np mm,Glass gl,\
-double X,double Y, double Z,Exterior *ex_t,double *X_t,\
+void trans_Cam_Point(Exterior ex, mm_np mm, Glass gl,\
+double X, double Y, double Z, Exterior *ex_t, double *X_t,\
 double *Y_t, double *Z_t,double *cross_p, double *cross_c){
   //--Beat Lüthi June 07: I change the stuff to a system perpendicular to the interface
   double dist_cam_glas,dist_point_glas,dist_o_glas; //glas inside at water 
   
-  dist_o_glas=sqrt(gl.vec_x*gl.vec_x+gl.vec_y*gl.vec_y+gl.vec_z*gl.vec_z);
-  dist_cam_glas   = ex.x0*gl.vec_x/dist_o_glas+ex.y0*gl.vec_y/dist_o_glas+ex.z0*gl.vec_z/dist_o_glas-dist_o_glas-mm.d[0];
-  dist_point_glas = X    *gl.vec_x/dist_o_glas+Y    *gl.vec_y/dist_o_glas+Z    *gl.vec_z/dist_o_glas-dist_o_glas; 
+  dist_o_glas = sqrt(gl.vec_x*gl.vec_x+gl.vec_y*gl.vec_y+gl.vec_z*gl.vec_z);
+  
+  dist_cam_glas =   ex.x0*gl.vec_x/dist_o_glas +\
+                    ex.y0*gl.vec_y/dist_o_glas +\
+                    ex.z0*gl.vec_z/dist_o_glas -\
+                    dist_o_glas-mm.d[0];
+                    
+  dist_point_glas = X*gl.vec_x/dist_o_glas+\
+                    Y*gl.vec_y/dist_o_glas+\
+                    Z*gl.vec_z/dist_o_glas-\
+                    dist_o_glas; 
 
   cross_c[0]=ex.x0-dist_cam_glas*gl.vec_x/dist_o_glas;
   cross_c[1]=ex.y0-dist_cam_glas*gl.vec_y/dist_o_glas;
@@ -504,9 +500,9 @@ double *Y_t, double *Z_t,double *cross_p, double *cross_c){
   cross_p[1]=Y    -dist_point_glas*gl.vec_y/dist_o_glas;
   cross_p[2]=Z    -dist_point_glas*gl.vec_z/dist_o_glas;
 
-  ex_t->x0=0.;
-  ex_t->y0=0.;
-  ex_t->z0=dist_cam_glas+mm.d[0];
+  ex_t->x0 = 0.0;
+  ex_t->y0 = 0.0;
+  ex_t->z0 = dist_cam_glas + mm.d[0];
 
   *X_t=sqrt( pow(cross_p[0]-(cross_c[0]-mm.d[0]*gl.vec_x/dist_o_glas),2.)
 		    +pow(cross_p[1]-(cross_c[1]-mm.d[0]*gl.vec_y/dist_o_glas),2.)
@@ -518,14 +514,14 @@ double *Y_t, double *Z_t,double *cross_p, double *cross_c){
 
 
 /* copied from trafo.c */
-
-void correct_brown_affin (x, y, ap, x1, y1)
-
-double	x, y, *x1, *y1;
-ap_52	ap;
 /*  correct crd to geo with Brown + affine  */
-   
-{
+/* Arguments:
+*   double x,y
+*   additional orientation parameters (skewness, etc.) ap_52
+* Returns:
+*   corrected x1,y1 (double)
+*/  
+void correct_brown_affin (double x, double y, ap_52 ap, double *x1, double *y1){
   double  r, xq, yq;
 	
 

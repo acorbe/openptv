@@ -192,6 +192,24 @@ int compare_volume_par(volume_par *v1, volume_par *v2) {
     1. num_cams - number of cameras in a frame.
     2n (n = 1..num_cams). img_base_name
     2n + 1. cal_img_base_name
+    2n+2. hp_flag - high pass filter flag (0/1)
+    2n+3. allCam_flag - flag using the particles that are matched in all cameras
+    +4. tiff_flag, use TIFF headers or not (if RAW images) 0/1
+    +5. imx - horizontal size of the image/sensor in pixels, e.g. 1280
+    +6. imy - vertical size in pixels, e.g. 1024
+    +7. pix_x
+    +8 pix_y - pixel size of the sensor (one value per experiment means 
+   that all cameras are identical. TODO: allow for different cameras), in [mm], 
+   e.g. 0.010 = 10 micron pixel
+   +9. chfield - 
+   +10. mmp.n1 - index of refraction of the first media (air = 1)
+   +11. mmp.n2[0] - index of refraction of the second media - glass windows, can
+   be different?
+   +12. mmp.n3 - index of refraction of the flowing media (air, liquid)
+   2n+13. mmp.d[0] - thickness of the glass/perspex windows (second media), can be
+   different ?
+    
+   (if n = 4, then 21 lines)
     
     Arguments:
     char *filename - path to the text file containing the parameters.
@@ -221,6 +239,18 @@ control_par* read_control_par(char *filename) {
         ret->cal_img_base_name[cam] = (char *) malloc(SEQ_FNAME_MAX_LEN);
         strncpy(ret->cal_img_base_name[cam], line, SEQ_FNAME_MAX_LEN);
     }
+    if(fscanf(par_file, "%d\n", &(ret->hp_flag)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->allCam_flag)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->tiff_flag)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->imx)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->imy)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->pix_x)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->pix_y)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->chfield)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->mmp.n1)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->mmp.n2)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->mmp.n3)) == 0) goto handle_error;
+    if(fscanf(par_file, "%d\n", &(ret->mmp.d)) == 0) goto handle_error; 
     
     return ret;
     fclose(par_file);
@@ -238,6 +268,7 @@ handle_error:
     control_par *cp - pointer to the control_par object to destroy.
 */
 void free_control_par(control_par *cp) {
+    
     int cam;
     
     for (cam = 0; cam < cp->num_cams; cam++) {
@@ -271,6 +302,174 @@ int compare_control_par(control_par *c1, control_par *c2) {
         if (strncmp(c1->cal_img_base_name[cam], c2->cal_img_base_name[cam],
             SEQ_FNAME_MAX_LEN - 1) != 0) return 0;
     }
+    
+    if (c1->hp_flag != c2->hp_flag) return 0;
+    if (c1->allCam_flag != c2->allCam_flag) return 0;
+    if (c1->tiff_flag != c2->tiff_flag) return 0;
+    if (c1->imx != c2->imx) return 0;
+    if (c1->imy != c2->imy) return 0;
+    if (c1->pix_x != c2->pix_x) return 0;
+    if (c1->pix_y != c2->pix_y) return 0;
+    if (c1->chfield != c2->chfield) return 0;
+    if (c1->mmp.n1 != c2->mmp.n1) return 0;
+    if (c1->mmp.n2[0] != c2->mmp.n2[0]) return 0;
+    if (c1->mmp.n3 != c2->mmp.n3) return 0;
+    if (c1->mmp.d[0] != c2->mmp.d[0]) return 0;
+   
+    
     return 1;
 }
 
+
+
+/* read 
+
+    int  i, k;
+    unsigned char *im0 = img[0];
+    
+
+    cpar = read_control_par("parameters/ptv.par");
+    
+    printf("inside start_proc");
+    fpp = fopen_r ("parameters/ptv.par");
+    
+    fscanf (fpp, "%d\n", &n_img);
+    
+    for (i=0; i<4; i++)
+    {
+        fscanf (fpp, "%s\n", img_name[i]);
+        fscanf (fpp, "%s\n", img_cal[i]);
+    }
+    fscanf (fpp, "%d\n", &hp_flag);
+    fscanf (fpp, "%d\n", &allCam_flag);  
+    fscanf (fpp, "%d\n", &tiff_flag);
+    fscanf (fpp, "%d\n", &imx);
+    fscanf (fpp, "%d\n", &imy);
+    fscanf (fpp, "%lf\n", &pix_x);
+    fscanf (fpp, "%lf\n", &pix_y);
+    fscanf (fpp, "%d\n", &chfield);
+    fscanf (fpp, "%lf\n", &mmp.n1);
+    fscanf (fpp, "%lf\n", &mmp.n2[0]);
+    fscanf (fpp, "%lf\n", &mmp.n3);
+    fscanf (fpp, "%lf\n", &mmp.d[0]);
+    fclose (fpp);
+
+*/
+
+
+/* read_ptv_par() reads parameters of illuminated volume from a config file
+   with the following format: each line is a value, in this order:
+   1. n_img - number of cameras (integer, 1-4) 
+   2. n_img times we read the sequences of 
+    a) img_name[i] (string)
+    b) img_cal[i]  (string)
+   3. hp_flag - high pass filter flag (0/1)
+   4. allCam_flag - flag using the particles that are matched in all cameras
+   5. tiff_flag, use TIFF headers or not (if RAW images) 0/1
+   6. imx - horizontal size of the image/sensor in pixels, e.g. 1280
+   7. imy - vertical size in pixels, e.g. 1024
+   8. pix_x, pix_y - pixel size of the sensor (one value per experiment means 
+   that all cameras are identical. TODO: allow for different cameras), in [mm], 
+   e.g. 0.010 = 10 micron pixel
+   9. chfield - 
+   10. mmp.n1 - index of refraction of the first media (air = 1)
+   11. mmp.n2[0] - index of refraction of the second media - glass windows, can
+   be different?
+   12. mmp.n3 - index of refraction of the flowing media (air, liquid)
+   13. mmp.d[0] - thickness of the glass/perspex windows (second media), can be
+   different ?
+    
+   
+   
+   Arguments:
+   char *filename - path to the text file containing the parameters.
+   
+   Returns:
+   Pointer to a newly-allocated ptv_par structure. If reading failed for 
+   any reason, returns NULL.
+*/
+volume_par* read_ptv_par(char *filename) {
+    FILE* fpp;
+    ptv_par *ret = (ptv_par *) malloc(sizeof(ptv_par));
+    
+        int  i, k;
+    unsigned char *im0 = img[0];
+    
+
+    cpar = read_control_par("parameters/ptv.par");
+    
+    printf("inside start_proc");
+    fpp = fopen_r ("parameters/ptv.par");
+    
+    fscanf (fpp, "%d\n", &n_img);
+    
+    for (i=0; i<4; i++)
+    {
+        fscanf (fpp, "%s\n", img_name[i]);
+        fscanf (fpp, "%s\n", img_cal[i]);
+    }
+    fscanf (fpp, "%d\n", &hp_flag);
+    fscanf (fpp, "%d\n", &allCam_flag);  
+    fscanf (fpp, "%d\n", &tiff_flag);
+    fscanf (fpp, "%d\n", &imx);
+    fscanf (fpp, "%d\n", &imy);
+    fscanf (fpp, "%lf\n", &pix_x);
+    fscanf (fpp, "%lf\n", &pix_y);
+    fscanf (fpp, "%d\n", &chfield);
+    fscanf (fpp, "%lf\n", &mmp.n1);
+    fscanf (fpp, "%lf\n", &mmp.n2[0]);
+    fscanf (fpp, "%lf\n", &mmp.n3);
+    fscanf (fpp, "%lf\n", &mmp.d[0]);
+    fclose (fpp);
+
+    
+    
+    
+    
+    
+    
+    fpp = fopen(filename, "r");
+    if(fscanf(fpp, "%lf\n", &(ret->X_lay[0])) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->Zmin_lay[0])) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->Zmax_lay[0])) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->X_lay[1])) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->Zmin_lay[1])) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->Zmax_lay[1])) == 0) goto handle_error;
+    
+    if(fscanf(fpp, "%lf\n", &(ret->cnx)) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->cny)) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->cn)) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->csumg)) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->corrmin)) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->eps0)) == 0) goto handle_error;
+    
+    fclose (fpp);
+    return ret;
+
+handle_error:
+    free(ret);
+    fclose(fpp);
+    return NULL;
+}
+
+/* compare_volume_par() checks that all fields of two volume_par objects are
+   equal.
+   
+   Arguments:
+   volume_par *v1, volume_par *v2 - addresses of the objects for comparison.
+   
+   Returns:
+   True if equal, false otherwise.
+*/
+int compare_volume_par(volume_par *v1, volume_par *v2) {
+    return ( 
+        (v1->X_lay[0] == v2->X_lay[0]) && \
+        (v1->Zmin_lay[0] == v2->Zmin_lay[0]) && \
+        (v1->Zmax_lay[0] == v2->Zmax_lay[0]) && \
+        (v1->X_lay[1] == v2->X_lay[1]) && \
+        (v1->Zmin_lay[1] == v2->Zmin_lay[1]) && \
+        (v1->Zmax_lay[1] == v2->Zmax_lay[1]) &&
+        (v1->cn == v2->cn) && (v1->cnx == v2->cnx) && \
+        (v1->cny == v2->cny) && (v1->csumg == v2->csumg) && \
+        (v1->corrmin == v2->corrmin) && (v1->eps0 == v2->eps0) );
+}

@@ -7,14 +7,9 @@
 
 int dumbbell_pyptv;
 
-double epi_line (xl, yl, Ex1, I1, G1, Ex2, I2, G2)
+double epi_line (double xl, double yl, Exterior Ex1, Interior I1, Glass G1, \
+Exterior Ex2, Interior I2, Glass G2){
 
-double    xl, yl;
-Exterior  Ex1, Ex2;
-Interior  I1, I2;
-Glass     G1, G2;
-
-{
   int i,j;
   double m2;
   double vect1[3], vect2[3], vect3[3], nk[3], n2[3],
@@ -53,7 +48,8 @@ Glass     G1, G2;
 
 
 
-int epi_mm (x1, y1, Ex1, I1, G1, Ex2, I2, G2, mmp, vpar, xmin, ymin, xmax, ymax)
+int epi_mm (double x1, double y1, Exterior Ex1, Interior I1, Glass G1, \
+Exterior Ex2, Interior I2, Glass G2, mm_np mmp, vpar, xmin, ymin, xmax, ymax)
 
 double     x1, y1;	  	/* input coord */
 Exterior   Ex1, Ex2;           	/* orientation data */

@@ -47,8 +47,8 @@ void epi_mm_2D ( double* xp           /*output coordinates*/
   
   *xp=X; *yp=Y; *zp=Z;
   
-  printf("x,y = %3.2f, %3.2f, X,Y,Z = %3.2f,%3.2f,%3.2f\n",x1,y1,X,Y,Z);
-  printf("a,b,c = %3.2f, %3.2f, %3.2f, X1,Y1,Z1 = %3.2f, %3.2f, %3.2f\n", a,b,c, X1,Y1,Z1);
+  //printf("x,y = %3.2f, %3.2f, X,Y,Z = %3.2f,%3.2f,%3.2f\n",x1,y1,X,Y,Z);
+  //printf("a,b,c = %3.2f, %3.2f, %3.2f, X1,Y1,Z1 = %3.2f, %3.2f, %3.2f\n", a,b,c, X1,Y1,Z1);
   
 
   

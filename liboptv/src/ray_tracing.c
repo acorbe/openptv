@@ -27,6 +27,7 @@ Routines contained:		-
 
 
 
+
 /* removed point_line_line from ray_tracing - it is never used here */
 
 /* Normalized cross product of two vectors
@@ -101,6 +102,9 @@ void modu(double a[3], double *m) {
 * 
 */
 
+#include <stdio.h>
+
+#define ACORBE_DEB
 
 void ray_tracing_v2 (double x, double y, Exterior Ex, Interior I, Glass G, mm_np mm,\
 double *Xb2, double *Yb2, double *Zb2, double *a3, double *b3, double *c3) {
@@ -110,6 +114,26 @@ double *Xb2, double *Yb2, double *Zb2, double *a3, double *b3, double *c3) {
 			vect1[3], vect2[3], factor, s2;
 
 	double a[3],b[3],base2[3],c,dummy,bn[3],bp[3],n,p;
+
+
+	//#ifdef ACORBE_DEB
+	//printf("input correctness check...\n");
+	//printf("(x = %f, y = %f)\n",x,y);
+	
+	
+	//DIAG_PRINT_F(Exterior)(&Ex);
+
+	
+
+	
+	//FILE* fp = fopen("/home/acorbe/deb.t","w");
+	//fprintf(fp,"hi!");
+	//fprintf(fp,"%f %f %d\n",x,Ex.z0,mm.nlay);
+	//fclose(fp);
+
+	//#endif
+
+	
 
 	s2 = sqrt (x*x + y*y + I.cc*I.cc);
 	
@@ -214,3 +238,22 @@ double *Xb2, double *Yb2, double *Zb2, double *a3, double *b3, double *c3) {
 	*c3=p*bp[2]+n*bn[2];
 }
 
+
+void acorbe_print(){
+  printf("hi! by acorbe!\n");
+
+}
+
+void acorbe_print_2(double x){
+  printf("hi! by acorbe (%g)",x);
+}
+
+void acorbe_print_3(Glass G){
+  printf("hi! by acorbe (%g)",G.vec_x);
+}
+
+void acorbe_print_4(double * x){
+  printf("hi! by acorbe (%g)",*x);
+  *x=5;
+
+}

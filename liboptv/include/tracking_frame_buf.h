@@ -6,6 +6,8 @@ for all cameras, correspondence information and path links information.
 #ifndef TRACKING_FRAME_BUF_H
 #define TRACKING_FRAME_BUF_H
 
+//#include "diagnostic.h"
+
 #define POSI 80
 #define STR_MAX_LEN 255
 
